@@ -1,0 +1,37 @@
+/**
+ * Define regular expressions at top to have them precompiled.
+ */
+
+//const urlRegex = new RegExp('^(refreshce|gclid|cx|ie|cof|siteurl|zanpid|origin|utm_[a-z]+|fbid|fbclid|mr:[A-z]+|ref(id|src))$');
+const urlRegex = new RegExp('^(gclid|utm_[a-z]+|fbid|fbclid)$');
+
+addEventListener('fetch', event => {
+    event.passThroughOnException()
+    event.respondWith(handleRequest(event.request))
+})
+  
+  
+async function handleRequest(request) {
+    
+    let url = new URL(request.url)
+    
+    url = await normalizeUrl(url)
+    
+    let modifiedRequest = new Request(url, request)
+  
+    return fetch(modifiedRequest)
+}
+
+async function normalizeUrl(url) {
+    let deleteKeys = []
+    
+    for(var key of url.searchParams.keys()) { 
+        if(key.match(urlRegex)){
+            deleteKeys.push(key)
+        }
+    }
+
+    deleteKeys.map(k => url.searchParams.delete(k))
+
+    return url
+}
